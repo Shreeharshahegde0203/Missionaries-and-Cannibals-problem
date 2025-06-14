@@ -1,0 +1,1253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cannibals and Missionaries Puzzle Solver</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .container {
+            max-width: 1400px;
+            width: 100%;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            color: white;
+        }
+
+        .btn-info {
+            background: linear-gradient(45deg, #f39c12, #e67e22);
+            color: white;
+        }
+
+        .btn-visualize {
+            background: linear-gradient(45deg, #2ecc71, #27ae60);
+            color: white;
+        }
+
+        .btn-animation-control {
+            background: linear-gradient(45deg, #9b59b6, #8e44ad);
+            color: white;
+        }
+        
+        .btn-stop {
+            background: linear-gradient(45deg, #c0392b, #e74c3c); /* Red for stop */
+            color: white;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .results-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .results-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .result-panel {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            border: 2px solid #dee2e6;
+        }
+
+        .result-panel h3 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            text-align: center;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #3498db;
+        }
+
+        .stat-label {
+            color: #7f8c8d;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .solution-steps {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            margin: 10px 0;
+            background: linear-gradient(90deg, #ecf0f1, #bdc3c7);
+            border-radius: 10px;
+            border-left: 4px solid #3498db;
+            transition: all 0.3s ease;
+        }
+
+        .step:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .step.highlighted-step {
+            background: linear-gradient(90deg, #ffeaa7, #fff3cd); /* Highlight color */
+            border-left: 4px solid #f39c12;
+            box-shadow: 0 0 15px rgba(243, 156, 18, 0.5);
+        }
+
+        .step-number {
+            background: #3498db;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+        }
+
+        .step-content {
+            flex: 1;
+        }
+
+        .state {
+            font-family: 'Courier New', monospace;
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 8px 12px;
+            border-radius: 5px;
+            display: inline-block;
+            margin: 2px;
+        }
+
+        .boat {
+            color: #f39c12;
+            font-weight: bold;
+        }
+
+        .analysis-section {
+            background: linear-gradient(135deg, #fff, #f8f9fa);
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 30px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .analysis-section h2 {
+            color: #2c3e50;
+            margin-bottom: 25px;
+            text-align: center;
+            font-size: 2em;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 15px;
+        }
+
+        .complexity-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .complexity-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+            border: 2px solid #e9ecef;
+        }
+
+        .complexity-card h4 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            text-align: center;
+        }
+
+        .complexity-details {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .comparison-table th {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: bold;
+        }
+
+        .comparison-table td {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .comparison-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .chart {
+            width: 100%;
+            max-height: 400px;
+        }
+
+        .loading {
+            text-align: center;
+            color: #7f8c8d;
+            font-style: italic;
+            padding: 20px;
+        }
+
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #c62828;
+            margin: 10px 0;
+        }
+
+        .highlight {
+            background: linear-gradient(45deg, #fff3cd, #ffeaa7);
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #f39c12;
+            margin: 20px 0;
+        }
+
+        .code-section {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+
+        .code-section pre {
+            margin: 0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Animation Display Area */
+        .animation-display-container {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+            text-align: center;
+            font-size: 1.5em;
+            font-family: 'Courier New', monospace;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            min-height: 80px; /* Ensure some height for initial content */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .animation-display-container .current-state {
+            background: #34495e;
+            padding: 10px 20px;
+            border-radius: 8px;
+            display: inline-block;
+        }
+        .animation-display-container .animation-action {
+            font-size: 0.8em;
+            color: #bdc3c7;
+        }
+        .animation-controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .animation-controls button {
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>🚣 Cannibals and Missionaries Puzzle Solver 🚣</h1>
+
+        <div class="controls">
+            <button class="btn-primary" onclick="solveBruteForce()">🔍 Solve with Brute Force</button>
+            <button class="btn-secondary" onclick="solveBacktracking()">🎯 Solve with Backtracking</button>
+            <button class="btn-visualize" onclick="visualizeBruteForce()">▶️ Visualize Brute Force</button>
+            <button class="btn-visualize" onclick="visualizeBacktracking()">▶️ Visualize Backtracking</button>
+            <button class="btn-info" onclick="showAnalysis()">📊 Show Complexity Analysis</button>
+            <button class="btn-primary" onclick="compareAlgorithms()">⚖️ Compare Algorithms</button>
+            <button class="btn-secondary" onclick="showCode()">💻 Show Code</button>
+        </div>
+
+        <div class="animation-display-container" id="animation-display-container">
+            <div class="loading">Click 'Visualize' after solving to see animation</div>
+        </div>
+        <div class="animation-controls" id="animation-controls">
+            <button class="btn-animation-control" onclick="nextStep()">➡️ Next Step</button>
+            <button class="btn-animation-control" id="playPauseBtn" onclick="togglePlayPause()">⏯️ Play</button>
+            <button class="btn-stop" onclick="stopAnimation()">⏹️ Stop</button>
+        </div>
+
+
+        <div class="results-container">
+            <div class="result-panel">
+                <h3>🔍 Brute Force Results</h3>
+                <div class="stats">
+                    <div class="stat-item">
+                        <div class="stat-value" id="bf-time">-</div>
+                        <div class="stat-label">Execution Time (ms)</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="bf-states">-</div>
+                        <div class="stat-label">States Explored</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="bf-steps">-</div>
+                        <div class="stat-label">Solution Steps</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="bf-memory">-</div>
+                        <div class="stat-label">Memory Usage (KB)</div>
+                    </div>
+                </div>
+                <div class="solution-steps" id="bf-solution">
+                    <div class="loading">Click "Solve with Brute Force" to see results</div>
+                </div>
+            </div>
+
+            <div class="result-panel">
+                <h3>🎯 Backtracking Results</h3>
+                <div class="stats">
+                    <div class="stat-item">
+                        <div class="stat-value" id="bt-time">-</div>
+                        <div class="stat-label">Execution Time (ms)</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="bt-states">-</div>
+                        <div class="stat-label">States Explored</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="bt-steps">-</div>
+                        <div class="stat-label">Solution Steps</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="bt-memory">-</div>
+                        <div class="stat-label">Memory Usage (KB)</div>
+                    </div>
+                </div>
+                <div class="solution-steps" id="bt-solution">
+                    <div class="loading">Click "Solve with Backtracking" to see results</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="analysis-section hidden" id="analysis-section">
+            <h2>📊 Comprehensive Complexity Analysis</h2>
+
+            <div class="complexity-grid">
+                <div class="complexity-card">
+                    <h4>🔍 Brute Force Algorithm</h4>
+                    <div class="complexity-details">
+                        <strong>Time Complexity:</strong> O(b^d)<br>
+                        <strong>Space Complexity:</strong> O(b^d)<br>
+                        <strong>Where:</strong> b = branching factor (~5), d = depth (~11)
+                    </div>
+                    <div class="complexity-details">
+                        <strong>How it works:</strong><br>
+                        • Explores ALL possible paths using BFS<br>
+                        • Stores ALL visited states in memory<br>
+                        • Guarantees optimal solution<br>
+                        • No pruning of invalid paths early
+                    </div>
+                </div>
+
+                <div class="complexity-card">
+                    <h4>🎯 Backtracking Algorithm</h4>
+                    <div class="complexity-details">
+                        <strong>Time Complexity:</strong> O(b^d) worst case, O(d) best case<br>
+                        <strong>Space Complexity:</strong> O(d)<br>
+                        <strong>Where:</strong> b = branching factor (~5), d = depth (~11)
+                    </div>
+                    <div class="complexity-details">
+                        <strong>How it works:</strong><br>
+                        • Uses DFS with intelligent pruning<br>
+                        • Backtracks when invalid state found<br>
+                        • Uses O(d) space on call stack<br>
+                        • Prunes invalid branches early
+                    </div>
+                </div>
+            </div>
+
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Aspect</th>
+                        <th>Brute Force (BFS)</th>
+                        <th>Backtracking (DFS)</th>
+                        <th>Winner</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Time Complexity</strong></td>
+                        <td>O(5^11) ≈ 48M operations</td>
+                        <td>O(5^11) worst, O(11) average</td>
+                        <td>🎯 Backtracking</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Space Complexity</strong></td>
+                        <td>O(5^11) - stores all states</td>
+                        <td>O(11) - only call stack</td>
+                        <td>🎯 Backtracking</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Memory Usage</strong></td>
+                        <td>Very High (exponential)</td>
+                        <td>Low (linear in depth)</td>
+                        <td>🎯 Backtracking</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Solution Quality</strong></td>
+                        <td>Guaranteed optimal</td>
+                        <td>May not be optimal</td>
+                        <td>🔍 Brute Force</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Early Termination</strong></td>
+                        <td>No - explores all paths</td>
+                        <td>Yes - stops at first solution</td>
+                        <td>🎯 Backtracking</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Practical Performance</strong></td>
+                        <td>Slower for large problems</td>
+                        <td>Much faster in practice</td>
+                        <td>🎯 Backtracking</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="highlight">
+                <h3>🏆 Why Backtracking is Better Despite Same Big-O</h3>
+                <p><strong>1. Average Case Performance:</strong> While both have O(b^d) worst-case complexity, backtracking's average case is much better due to pruning.</p>
+                <p><strong>2. Space Efficiency:</strong> Backtracking uses O(d) space vs O(b^d) for brute force - this is crucial for scalability.</p>
+                <p><strong>3. Early Termination:</strong> Backtracking stops at the first valid solution, while brute force explores everything.</p>
+                <p><strong>4. Practical Constraints:</strong> Real-world problems often hit memory limits with brute force before time limits.</p>
+                <p><strong>5. Branch Pruning:</strong> Invalid states are detected and pruned immediately, reducing the effective branching factor.</p>
+            </div>
+
+            <div class="chart-container">
+                <h3>Performance Comparison Graph</h3>
+                <canvas id="performanceChart" class="chart"></canvas>
+            </div>
+        </div>
+
+        <div class="code-section hidden" id="code-section">
+            <h3>💻 Algorithm Implementations (C++)</h3>
+            <pre id="code-display">
+// C++ Brute Force (BFS) Algorithm
+// (This is a placeholder. Replace with actual C++ BFS implementation)
+#include <iostream>
+#include <vector>
+#include <queue>
+#include <set>
+#include <string>
+#include <chrono>
+
+struct State {
+    int cL, mL, boat, cR, mR; // Cannibals Left, Missionaries Left, Boat Side (0=L, 1=R), Cannibals Right, Missionaries Right
+    State* parent;
+    std::string action;
+    State(int cL, int mL, int boat, int cR, int mR, State* parent = nullptr, const std::string& action = "")
+        : cL(cL), mL(mL), boat(boat), cR(cR), mR(mR), parent(parent), action(action) {}
+
+    bool isValid() const {
+        if (cL < 0 || mL < 0 || cR < 0 || mR < 0) return false;
+        if (cL > 3 || mL > 3 || cR > 3 || mR > 3) return false; // Assuming 3 cannibals and 3 missionaries
+
+        if (mL > 0 && cL > mL) return false;
+        if (mR > 0 && cR > mR) return false;
+        
+        return true;
+    }
+
+    bool isGoal() const {
+        return cL == 0 && mL == 0 && boat == 1;
+    }
+
+    std::string getKey() const {
+        return std::to_string(cL) + "," + std::to_string(mL) + "," + std::to_string(boat) + "," + std::to_string(cR) + "," + std::to_string(mR);
+    }
+};
+
+std::vector<State> getSuccessors(const State& currentState) {
+    std::vector<State> successors;
+    std::vector<std::pair<int, int>> moves = {{1, 0}, {2, 0}, {0, 1}, {0, 2}, {1, 1}}; // {cannibals, missionaries}
+
+    for (auto move : moves) {
+        State newState = currentState;
+        std::string action;
+
+        if (currentState.boat == 0) { // Boat on left, moving to right
+            newState.cL -= move.first;
+            newState.mL -= move.second;
+            newState.boat = 1;
+            newState.cR += move.first;
+            newState.mR += move.second;
+            action = "Move " + std::to_string(move.first) + " cannibals and " + std::to_string(move.second) + " missionaries from LEFT to RIGHT";
+        } else { // Boat on right, moving to left
+            newState.cL += move.first;
+            newState.mL += move.second;
+            newState.boat = 0;
+            newState.cR -= move.first;
+            newState.mR -= move.second;
+            action = "Move " + std::to_string(move.first) + " cannibals and " + std::to_string(move.second) + " missionaries from RIGHT to LEFT";
+        }
+
+        newState.parent = new State(currentState); // Create a new parent to avoid dangling pointers
+        newState.action = action;
+        if (newState.isValid()) {
+            successors.push_back(newState);
+        } else {
+            delete newState.parent; // Clean up invalid state's parent
+        }
+    }
+    return successors;
+}
+
+// C++ Backtracking (DFS) Algorithm
+// (This is a placeholder. Replace with actual C++ DFS implementation)
+// Note: For a robust C++ implementation, memory management for 'State' objects
+//       and handling of the 'visited' set in DFS would require careful attention
+//       (e.g., using shared_ptr or proper delete calls).
+//       The current JavaScript solution's memory tracking is approximate.
+/*
+// Example C++ Backtracking (DFS) skeleton:
+bool backtrack(State& state, std::vector<State>& path, std::set<std::string>& visited, int depth, int& statesExplored, int& maxDepth, std::vector<State>* solution) {
+    statesExplored++;
+    maxDepth = std::max(maxDepth, depth);
+
+    if (state.isGoal()) {
+        *solution = path;
+        solution->push_back(state);
+        return true;
+    }
+
+    if (visited.count(state.getKey())) {
+        return false;
+    }
+
+    if (depth > 15) { // Pruning depth limit
+        return false;
+    }
+
+    visited.insert(state.getKey());
+    path.push_back(state);
+
+    std::vector<State> successors = getSuccessors(state);
+    // Re-evaluate getSuccessors based on C++ State management
+    for (State& successor : successors) {
+        if (backtrack(successor, path, visited, depth + 1, statesExplored, maxDepth, solution)) {
+            return true;
+        }
+    }
+
+    path.pop_back();
+    visited.erase(state.getKey());
+    return false;
+}
+*/
+            </pre>
+        </div>
+    </div>
+
+    <script>
+        // Global variables to store algorithm results
+        let bruteForceResults = null;
+        let backtrackingResults = null;
+        let performanceChartInstance = null; // To store the Chart.js instance
+
+        // New global variables to store ALL explored states for visualization
+        let bruteForceExploredStates = [];
+        let backtrackingExploredStates = [];
+
+        // Animation Control Object
+        const animationControl = {
+            currentAlgorithm: null, // 'brute-force' or 'backtracking'
+            statesToAnimate: [],
+            stepIndex: 0,
+            timeoutId: null,
+            isPaused: true, // Start paused
+            playPromise: null, // Promise for manual stepping
+            playResolve: null, // Resolver for the promise
+            animationContainer: null, // Reference to the animation display container
+            playPauseBtn: null // Reference to the play/pause button
+        };
+        // State representation: [cannibals_left, missionaries_left, boat_side, cannibals_right, missionaries_right]
+        // boat_side: 0 = left, 1 = right
+
+        class State {
+            constructor(cL, mL, boat, cR, mR, parent = null, action = "", depth = 0) {
+                this.cL = cL;
+                this.mL = mL;
+                this.boat = boat;
+                this.cR = cR;
+                this.mR = mR;
+                this.parent = parent;
+                this.action = action;
+                this.depth = depth; // Added depth for backtracking visualization
+            }
+
+            isValid() {
+                // Check if state is valid
+                if (this.cL < 0 || this.mL < 0 || this.cR < 0 || this.mR < 0) return false;
+                if (this.cL > 3 || this.mL > 3 || this.cR > 3 || this.mR > 3) return false; // Assuming 3 cannibals and 3 missionaries, as per the typical puzzle
+                // Missionaries must not be outnumbered by cannibals on either side
+                if (this.mL > 0 && this.cL > this.mL) return false;
+                if (this.mR > 0 && this.cR > this.mR) return false;
+                
+                return true;
+            }
+
+            isGoal() {
+                return this.cL === 0 && this.mL === 0 && this.boat === 1;
+            }
+
+            getKey() {
+                return `${this.cL},${this.mL},${this.boat},${this.cR},${this.mR}`;
+            }
+
+            getSuccessors() {
+                const successors = [];
+                const moves = [
+                    [1, 0], [2, 0], [0, 1], [0, 2], [1, 1]  // [cannibals, missionaries]
+                ];
+                for (let move of moves) {
+                    let newState;
+                    let action;
+                    
+                    if (this.boat === 0) { // Boat on left, moving to right
+                        newState = new State(
+                            this.cL - move[0],
+                            this.mL - move[1],
+                            1,
+                            this.cR + move[0],
+                            this.mR + move[1],
+                            this,
+                            `Move ${move[0]} C and ${move[1]} M from LEFT to RIGHT`,
+                            this.depth + 1
+                        );
+                    } else { // Boat on right, moving to left
+                        newState = new State(
+                            this.cL + move[0],
+                            this.mL + move[1],
+                            0,
+                            this.cR - move[0],
+                            this.mR - move[1],
+                            this,
+                            `Move ${move[0]} C and ${move[1]} M from RIGHT to LEFT`,
+                            this.depth + 1
+                        );
+                    }
+                    
+                    if (newState.isValid()) {
+                        successors.push(newState);
+                    }
+                }
+                
+                return successors;
+            }
+            
+            toString() {
+                const leftSide = `C:${this.cL} M:${this.mL}`;
+                const rightSide = `C:${this.cR} M:${this.mR}`;
+                const boatEmoji = '🚣';
+                const boatPosition = this.boat === 0 ? `${boatEmoji} [L]` : `[R] ${boatEmoji}`;
+                const river = this.boat === 0 ? ' ~~~> ' : ' <~~~ '; // Simple animation cue
+                return `${leftSide}${river}${boatPosition}${river}${rightSide}`;
+            }
+        }
+        
+        // Brute Force Algorithm (BFS)
+        function bruteForceSearch() {
+            const startTime = performance.now();
+            const initialState = new State(3, 3, 0, 0, 0, null, "Initial State", 0);
+            const queue = [initialState];
+            const visited = new Set();
+            bruteForceExploredStates = []; // Reset for new search
+            let statesExplored = 0;
+            let maxMemoryUsage = 0; // Represents max queue + visited size
+
+            visited.add(initialState.getKey());
+            bruteForceExploredStates.push(initialState); // Store initial state for visualization
+
+            let solutionPath = null;
+            while (queue.length > 0) {
+                maxMemoryUsage = Math.max(maxMemoryUsage, queue.length + visited.size);
+                const currentState = queue.shift();
+                statesExplored++;
+                
+                if (currentState.isGoal()) {
+                    if (!solutionPath) { // Store the first found solution (which is optimal for BFS)
+                        solutionPath = [];
+                        let state = currentState;
+                        while (state) {
+                            solutionPath.unshift(state);
+                            state = state.parent;
+                        }
+                    }
+                }
+                
+                const successors = currentState.getSuccessors();
+                for (let successor of successors) {
+                    if (!visited.has(successor.getKey())) {
+                        visited.add(successor.getKey());
+                        queue.push(successor);
+                        bruteForceExploredStates.push(successor); // Store all explored states for visualization
+                    }
+                }
+            }
+            
+            const endTime = performance.now();
+            return {
+                solution: solutionPath, // The actual solution path
+                allExploredStates: bruteForceExploredStates, // All states visited during BFS
+                statesExplored,
+                executionTime: endTime - startTime,
+                memoryUsage: maxMemoryUsage * (5 * 4) / 1024 // Approximate bytes per state (5 ints * 4 bytes/int) converted to KB
+            };
+        }
+        
+        // Backtracking Algorithm (DFS with pruning)
+        function backtrackingSearch() {
+            const startTime = performance.now();
+            const initialState = new State(3, 3, 0, 0, 0, null, "Initial State", 0);
+            let statesExplored = 0;
+            let maxDepth = 0; // Represents max call stack depth
+            let solution = null;
+            backtrackingExploredStates = []; // Reset for new search
+            
+            function backtrack(state, path, visited, depth) {
+                statesExplored++;
+                maxDepth = Math.max(maxDepth, depth);
+                backtrackingExploredStates.push(state); // Store all explored states for visualization
+
+                if (state.isGoal()) {
+                    solution = [...path, state];
+                    return true;
+                }
+                
+                // Pruning: if we've seen this state before in current path, skip
+                if (visited.has(state.getKey())) {
+                    return false;
+                }
+                
+                // Pruning: if depth is too large, skip (prevents excessively deep searches)
+                if (depth > 15) { //
+                    return false;
+                }
+                
+                visited.add(state.getKey());
+                path.push(state);
+                
+                const successors = state.getSuccessors();
+                for (let successor of successors) {
+                    if (backtrack(successor, path, visited, depth + 1)) {
+                        return true;
+                    }
+                }
+                
+                // Backtrack: remove current state from path
+                path.pop();
+                // Allow revisiting this state from another branch if needed
+                visited.delete(state.getKey());
+                return false;
+            }
+            
+            backtrack(initialState, [], new Set(), 0);
+            
+            const endTime = performance.now();
+            if (solution) {
+                return {
+                    solution,
+                    allExploredStates: backtrackingExploredStates, // All states visited during DFS
+                    statesExplored,
+                    executionTime: endTime - startTime,
+                    memoryUsage: maxDepth * (5 * 4) / 1024 // Approximate bytes per stack frame for state, converted to KB
+                };
+            }
+            
+            return null;
+        }
+        
+        // Display solution in UI
+        function displaySolution(solutionData, containerId, algorithm) {
+            const container = document.getElementById(containerId);
+            if (!solutionData || !solutionData.solution) {
+                container.innerHTML = '<div class="error">No solution found!</div>';
+                return;
+            }
+            
+            let html = '';
+            // Display the actual solution path in the result panel
+            solutionData.solution.forEach((state, index) => {
+                html += `
+                    <div class="step" data-step-index="${index}">
+                        <div class="step-number">${index + 1}</div>
+                        <div class="step-content">
+                            <div class="state">${state.toString()}</div>
+                            ${state.action ? `<div style="margin-top: 5px; color: #2c3e50; font-size: 0.9em;"><strong>Action:</strong> ${state.action}</div>` : '<div style="margin-top: 5px; color: #7f8c8d; font-size: 0.9em;">Initial State</div>'}
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+            
+            // Update statistics
+            const prefix = algorithm === 'brute-force' ? 'bf' : 'bt';
+            document.getElementById(`${prefix}-time`).textContent = solutionData.executionTime.toFixed(2);
+            document.getElementById(`${prefix}-states`).textContent = solutionData.statesExplored.toLocaleString();
+            document.getElementById(`${prefix}-steps`).textContent = solutionData.solution.length;
+            document.getElementById(`${prefix}-memory`).textContent = solutionData.memoryUsage.toFixed(2);
+        }
+        
+        // Solve using Brute Force
+        function solveBruteForce() {
+            stopAnimation(); // Stop any ongoing animation
+            document.getElementById('bf-solution').innerHTML = '<div class="loading">Solving... Please wait.</div>';
+            setTimeout(() => { // Use setTimeout to allow UI to update before heavy computation
+                console.log("Starting Brute Force search...");
+                try {
+                    bruteForceResults = bruteForceSearch();
+                    displaySolution(bruteForceResults, 'bf-solution', 'brute-force');
+                    console.log("Brute Force completed successfully!");
+                } catch (error) {
+                    console.error("Error in brute force:", error);
+                    document.getElementById('bf-solution').innerHTML = '<div class="error">Error occurred during brute force search. Check console for details.</div>';
+                }
+            }, 10);
+        }
+        
+        // Solve using Backtracking
+        function solveBacktracking() {
+            stopAnimation(); // Stop any ongoing animation
+            document.getElementById('bt-solution').innerHTML = '<div class="loading">Solving... Please wait.</div>';
+            setTimeout(() => { // Use setTimeout to allow UI to update before heavy computation
+                console.log("Starting Backtracking search...");
+                try {
+                    backtrackingResults = backtrackingSearch();
+                    displaySolution(backtrackingResults, 'bt-solution', 'backtracking');
+                    console.log("Backtracking completed successfully!");
+                } catch (error) {
+                    console.error("Error in backtracking:", error);
+                    document.getElementById('bt-solution').innerHTML = '<div class="error">Error occurred during backtracking search. Check console for details.</div>';
+                }
+            }, 10);
+        }
+
+        // --- New Animation Functions ---
+
+        function animateSolution(algorithmType) {
+            console.log("animateSolution called for:", algorithmType);
+            animationControl.animationContainer = document.getElementById('animation-display-container');
+            animationControl.playPauseBtn = document.getElementById('playPauseBtn');
+
+            if (algorithmType === 'brute-force') {
+                if (!bruteForceResults) {
+                    alert("Please solve with Brute Force first!");
+                    console.warn("Brute Force results not found. Please solve first.");
+                    return;
+                }
+                animationControl.statesToAnimate = bruteForceResults.allExploredStates;
+                animationControl.currentAlgorithm = 'Brute Force';
+            } else if (algorithmType === 'backtracking') {
+                if (!backtrackingResults) {
+                    alert("Please solve with Backtracking first!");
+                    console.warn("Backtracking results not found. Please solve first.");
+                    return;
+                }
+                animationControl.statesToAnimate = backtrackingResults.allExploredStates;
+                animationControl.currentAlgorithm = 'Backtracking';
+            } else {
+                return;
+            }
+
+            stopAnimation(); // Clear any previous animation
+
+            animationControl.stepIndex = 0;
+            animationControl.isPaused = true; // Start paused for manual control
+            animationControl.playPauseBtn.textContent = '▶️ Play'; // Set button to Play
+            
+            console.log("Starting animation in paused mode. Initializing showNextStep.");
+            showNextStep(); // Show the first step immediately
+        }
+
+        async function showNextStep() {
+            console.log("showNextStep called. isPaused:", animationControl.isPaused, "stepIndex:", animationControl.stepIndex, "States to animate length:", animationControl.statesToAnimate.length);
+
+            if (animationControl.stepIndex >= animationControl.statesToAnimate.length) {
+                animationControl.animationContainer.innerHTML = '<div class="loading">Animation Finished!</div>';
+                console.log("Animation finished. Stopping.");
+                stopAnimation(); // Call stop to reset buttons and state
+                return;
+            }
+
+            const currentState = animationControl.statesToAnimate[animationControl.stepIndex];
+            animationControl.animationContainer.innerHTML = `
+                <div class="current-state">${currentState.toString()}</div>
+                <div class="animation-action">
+                    ${animationControl.currentAlgorithm} State ${animationControl.stepIndex + 1}/${animationControl.statesToAnimate.length}: ${currentState.action ? currentState.action : 'Initial State'} (Depth: ${currentState.depth})
+                </div>
+                ${currentState.isGoal() ? '<div style="color: #27ae60; font-weight: bold;">(GOAL STATE FOUND!)</div>' : ''}
+            `;
+            animationControl.stepIndex++;
+
+            if (animationControl.isPaused) { // If currently paused (manual mode)
+                console.log("showNextStep: Awaiting manual trigger for step", animationControl.stepIndex);
+                // Create a new promise for each step in manual mode and wait
+                animationControl.playPromise = new Promise(resolve => {
+                    animationControl.playResolve = resolve;
+                });
+                await animationControl.playPromise; // Wait for nextStep() or togglePlayPause()
+                console.log("showNextStep: Manual trigger received. Proceeding to next step setup.");
+                // After resolving, immediately call showNextStep again for the next state if still paused
+                if (animationControl.isPaused) { // Only call again if still in paused mode
+                    showNextStep();
+                }
+            } else { // If playing (automatic mode)
+                console.log("showNextStep: Setting timeout for auto-play for step", animationControl.stepIndex);
+                animationControl.timeoutId = setTimeout(showNextStep, 50); // Fast animation in play mode
+            }
+        }
+
+        function nextStep() {
+            console.log("nextStep called. isPaused:", animationControl.isPaused, "playResolve exists:", !!animationControl.playResolve);
+            if (animationControl.isPaused && animationControl.playResolve) {
+                console.log("nextStep: Resolving playPromise to advance.");
+                animationControl.playResolve(); // Resolve the promise to continue to the next state
+                // Note: showNextStep will then call itself to display the next state if still paused.
+            } else {
+                console.log("nextStep: Not in manual mode (isPaused is false) or playResolve is null. Doing nothing.");
+            }
+        }
+
+        function togglePlayPause() {
+            console.log("togglePlayPause called. Current isPaused:", animationControl.isPaused);
+            animationControl.isPaused = !animationControl.isPaused;
+            if (animationControl.isPaused) {
+                animationControl.playPauseBtn.textContent = '▶️ Play';
+                console.log("Transitioned to PAUSED mode. Clearing auto-play timeout.");
+                if (animationControl.timeoutId) {
+                    clearTimeout(animationControl.timeoutId); // Stop automatic timer
+                    animationControl.timeoutId = null;
+                }
+            } else {
+                animationControl.playPauseBtn.textContent = '⏸️ Pause';
+                console.log("Transitioned to PLAY mode.");
+                // When playing, ensure any pending manual step promise is resolved
+                // and then kick off the auto-play.
+                if (animationControl.playResolve) {
+                    console.log("Resolving pending manual step promise.");
+                    animationControl.playResolve(); // Resolve to let it proceed
+                    animationControl.playResolve = null; // Clear resolver
+                    animationControl.playPromise = null; // Clear promise
+                } else {
+                    // If no pending promise (e.g., just started playing from a stopped state),
+                    // then immediately call showNextStep to kick off auto-play.
+                    console.log("No pending promise, starting auto-play with showNextStep.");
+                    showNextStep();
+                }
+            }
+        }
+
+        function stopAnimation() {
+            console.log("stopAnimation called.");
+            if (animationControl.timeoutId) {
+                clearTimeout(animationControl.timeoutId);
+            }
+            animationControl.timeoutId = null; // Use null to indicate no active timer
+            animationControl.stepIndex = 0;
+            animationControl.isPaused = true;
+            
+            if (animationControl.playResolve) {
+                console.log("Resolving lingering playPromise in stopAnimation.");
+                animationControl.playResolve(); // Resolve any lingering promise to prevent hanging
+                animationControl.playResolve = null;
+                animationControl.playPromise = null;
+            }
+            
+            if (animationControl.playPauseBtn) {
+                animationControl.playPauseBtn.textContent = '▶️ Play';
+            }
+            if (animationControl.animationContainer) {
+                 animationControl.animationContainer.innerHTML = '<div class="loading">Animation Stopped. Click \'Visualize\' to restart.</div>';
+            }
+        }
+
+
+        function visualizeBruteForce() {
+            animateSolution('brute-force');
+        }
+
+        function visualizeBacktracking() {
+            animateSolution('backtracking');
+        }
+        // --- End New Animation Functions ---
+
+
+        // Show complexity analysis
+        function showAnalysis() {
+            const analysisSection = document.getElementById('analysis-section');
+            const codeSection = document.getElementById('code-section');
+            
+            analysisSection.classList.remove('hidden'); // Ensure it's visible
+            codeSection.classList.add('hidden'); // Hide code section
+            drawPerformanceChart(); // Ensure chart is drawn when analysis is shown
+        }
+        
+        // Compare algorithms
+        function compareAlgorithms() {
+            if (!bruteForceResults || !backtrackingResults) {
+                alert("Please run both algorithms first by clicking their 'Solve' buttons!");
+                return;
+            }
+            
+            // Ensure analysis section is visible
+            document.getElementById('analysis-section').classList.remove('hidden');
+            document.getElementById('code-section').classList.add('hidden');
+            drawPerformanceChart();
+
+            const comparison = `
+🏆 ALGORITHM COMPARISON RESULTS:
+
+⏱️ EXECUTION TIME:
+• Brute Force: ${bruteForceResults.executionTime.toFixed(2)} ms
+• Backtracking: ${backtrackingResults.executionTime.toFixed(2)} ms
+• Winner: ${backtrackingResults.executionTime < bruteForceResults.executionTime ? 'Backtracking' : 'Brute Force'}
+
+🔍 STATES EXPLORED:
+• Brute Force: ${bruteForceResults.statesExplored.toLocaleString()}
+• Backtracking: ${backtrackingResults.statesExplored.toLocaleString()}
+• Winner: ${backtrackingResults.statesExplored < bruteForceResults.statesExplored ? 'Backtracking' : 'Brute Force'}
+
+💾 MEMORY USAGE:
+• Brute Force: ${bruteForceResults.memoryUsage.toFixed(2)} KB
+• Backtracking: ${backtrackingResults.memoryUsage.toFixed(2)} KB
+• Winner: ${backtrackingResults.memoryUsage < bruteForceResults.memoryUsage ? 'Backtracking' : 'Brute Force'}
+
+📊 EFFICIENCY RATIO:
+• Time Efficiency: ${(bruteForceResults.executionTime / backtrackingResults.executionTime).toFixed(2)}x faster with Backtracking
+• Space Efficiency: ${(bruteForceResults.memoryUsage / backtrackingResults.memoryUsage).toFixed(2)}x less memory with Backtracking
+            `;
+            console.log(comparison);
+            alert(comparison);
+        }
+        
+        // Draw performance comparison chart using Chart.js
+        function drawPerformanceChart() {
+            const canvas = document.getElementById('performanceChart');
+            if (!canvas) return;
+            
+            if (performanceChartInstance) {
+                performanceChartInstance.destroy(); // Destroy previous chart instance if it exists
+            }
+
+            const bfTime = bruteForceResults ? bruteForceResults.executionTime : 0;
+            const btTime = backtrackingResults ? backtrackingResults.executionTime : 0;
+            const bfStates = bruteForceResults ? bruteForceResults.statesExplored : 0;
+            const btStates = backtrackingResults ? backtrackingResults.statesExplored : 0;
+            const bfMemory = bruteForceResults ? bruteForceResults.memoryUsage : 0;
+            const btMemory = backtrackingResults ? backtrackingResults.memoryUsage : 0;
+
+            const data = {
+                labels: ['Execution Time (ms)', 'States Explored', 'Memory Usage (KB)'],
+                datasets: [
+                    {
+                        label: 'Brute Force',
+                        data: [bfTime, bfStates, bfMemory],
+                        backgroundColor: 'rgba(52, 152, 219, 0.7)', // #3498db
+                        borderColor: 'rgba(52, 152, 219, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Backtracking',
+                        data: [btTime, btStates, btMemory],
+                        backgroundColor: 'rgba(231, 76, 60, 0.7)', // #e74c3c
+                        borderColor: 'rgba(231, 76, 60, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            };
+            const options = {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Value'
+                        }
+                    }
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Algorithm Performance Comparison',
+                        font: {
+                            size: 18
+                        }
+                    }
+                }
+            };
+
+            performanceChartInstance = new Chart(canvas, {
+                type: 'bar',
+                data: data,
+                options: options
+            });
+        }
+
+        // Show code section
+        function showCode() {
+            const codeSection = document.getElementById('code-section');
+            const analysisSection = document.getElementById('analysis-section');
+
+            // Toggle visibility
+            codeSection.classList.toggle('hidden');
+            // If code section is now visible, hide analysis section
+            if (!codeSection.classList.contains('hidden')) {
+                analysisSection.classList.add('hidden');
+            }
+        }
+
+        // Initial state display for loading messages
+        window.onload = () => {
+            document.getElementById('bf-solution').innerHTML = '<div class="loading">Click "Solve with Brute Force" to see results</div>';
+            document.getElementById('bt-solution').innerHTML = '<div class="loading">Click "Solve with Backtracking" to see results</div>';
+            document.getElementById('animation-display-container').innerHTML = '<div class="loading">Click \'Visualize\' after solving to see animation</div>';
+        };
+
+    </script>
+</body>
+</html>
